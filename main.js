@@ -272,12 +272,3 @@ class Anchored {
         traverseTree(root);
     }
 }
-
-window.onload = () => {
-    Anchored.init(
-        document.querySelector(
-            "#article-container > div > article > section > div > div"
-        ),
-        HelpCenter.user.role != "anonymous"
-    );
-};
