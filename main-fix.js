@@ -28,17 +28,12 @@ var Anchored = function (root, options) {
 
         element.addEventListener("mouseenter", function (e) {
             this.hovered = true;
-            console.log(this);
             this.updateLink();
-            // if (!this.linkShown)
-            //     this.showLink();
         }.bind(this));
 
         element.addEventListener("mouseleave", function (e) {
             this.hovered = false;
             this.updateLink();
-            // if (!this.linkHovered)
-            //     this.hideLink();
         }.bind(this));
 
         this.getAnchor = function () {
@@ -49,10 +44,11 @@ var Anchored = function (root, options) {
             this.linkModalBackground = document.createElement("div");
             this.linkModalBackground.style.left = 0;
             this.linkModalBackground.style.top = 0;
+            this.linkModalBackground.style.right = 0;
+            this.linkModalBackground.style.bottom = 0;
             this.linkModalBackground.style.position = "fixed";
-            this.linkModalBackground.style.width = "100%";
-            this.linkModalBackground.style.height = "100%";
-            this.linkModalBackground.style.backgroundColor = "#fffd";
+            this.linkModalBackground.style.backgroundColor = "#fff";
+            this.linkModalBackground.style.opacity = 0.7;
             document.body.appendChild(this.linkModalBackground);
             this.linkModalBackground.addEventListener("click", function(e) {
                 this.hideLinkModal();
@@ -66,9 +62,9 @@ var Anchored = function (root, options) {
             this.linkModal.style.maxWidth = "90%";
             this.linkModal.style.transform = "translate(-50%, -50%)";
             this.linkModal.style.padding = "10px";
-            this.linkModal.style.background = "#fffe";
+            this.linkModal.style.backgroundColor = "#fff";
             this.linkModal.style.borderRadius = "7px";
-            this.linkModal.style.border = "1px solid #0005";
+            this.linkModal.style.border = "1px solid #666";
             document.body.appendChild(this.linkModal);
         };
 
@@ -90,17 +86,23 @@ var Anchored = function (root, options) {
         }.bind(this);
 
         this.hideLink = function () {
+            try {
             document.body.removeChild(this.linkElement);
+            } catch (e) {}
         }.bind(this);
 
         this.updateLink = function() {
             setTimeout(function() {
                 if (this.linkHovered || this.hovered) {
-                    this.showLink();
+                    if (!this.linkShown) {
+                        this.showLink();
+                        this.linkShown = true;
+                    }
                 } else {
                     this.hideLink();
+                    this.linkShown = false;
                 }
-            }.bind(this), 100);
+            }.bind(this), 25);
         }.bind(this);
 
         this.linkElement = document.createElement("div");
@@ -108,21 +110,18 @@ var Anchored = function (root, options) {
         this.linkElement.style.padding = "15px";
         this.linkElement.style.borderRadius = "15px";
         this.linkElement.style.border = "1px solid #ddd3"
-        this.linkElement.style.background = "#eee3";
+        this.linkElement.style.backgroundColor = "#eee";
         this.linkElement.style.display = "block";
         this.linkElement.style.transform = "translate(30%, -30%)";
         this.linkElement.style.cursor = "pointer";
         this.linkElement.innerHTML = "<i style=\"color: black; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);\" class=\"material-icons\">link</i>"
 
         this.linkElement.addEventListener("mouseenter", function (e) {
-            console.log("hovered");
             this.linkHovered = true;
             this.element.style.transition = "0.4s ease-in-out";
             this.element.style.borderRadius = "4px";
             this.element.style.boxShadow = "0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)";
             this.updateLink()
-            // if (!this.linkShown)
-            //     this.showLink();
         }.bind(this));
 
         this.linkElement.addEventListener("mouseleave", function (e) {
@@ -131,8 +130,6 @@ var Anchored = function (root, options) {
             this.element.style.boxShadow = "";
             this.element.style.transition = "";
             this.updateLink();
-            // if (!this.linkHovered)
-            //     this.hideLink();
         }.bind(this));
 
         this.linkElement.addEventListener("click", function (e) {
@@ -148,23 +145,21 @@ var Anchored = function (root, options) {
                 try {
                     var successful = document.execCommand('copy');
                     var msg = successful ? 'successful' : 'unsuccessful';
-                    console.log('Fallback: Copying text command was ' + msg);
                 } catch (err) {
-                    console.error('Fallback: Oops, unable to copy', err);
+                    console.error(err);
                 }
 
                 document.body.removeChild(textArea);
             }
 
             function copyTextToClipboard(text) {
-                if (!navigator && !navigator.clipboard) {
+                if (!navigator || !navigator.clipboard) {
                     fallbackCopyTextToClipboard(text);
                     return;
                 }
                 navigator.clipboard.writeText(text).then(function () {
-                    console.log('Async: Copying to clipboard was successful!');
                 }, function (err) {
-                    console.error('Async: Could not copy text: ', err);
+                    console.error(err);
                 });
             }
             copyTextToClipboard(anchorLink);
@@ -174,9 +169,14 @@ var Anchored = function (root, options) {
     };
 }
 
+Anchored.prototype.setup = function() {
+    this.createAnchors();
+    this.goToAnchor(this.getAnchorFromLink());
+}
 
-
-// Anchored.prototype.Anchor = anchorClass;
+Anchored.prototype.getAnchorFromLink = function () {
+    return window.location.hash.slice(1);
+}
 
 Anchored.prototype.goToAnchor = function (anchorID) {
     var main = function (anchorID) {
